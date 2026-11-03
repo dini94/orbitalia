@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Input builder · Computational Chemistry Lab</title><link rel="stylesheet" href="assets/css/style.css"></head><body>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">CC</span><span>Computational Chemistry<br><small>LABORATORY</small></span></a><nav><a href="course.html">Course</a><a href="molecular-builder.html">Molecular builder</a><a class="active" href="input-builder.html">Input builder</a><a href="results-analyzer.html">Results analyzer</a><a href="orca-docker.html">ORCA workbench</a></nav><button id="langToggle" class="secondary">ID / EN</button></header>
+<main class="page-wrap"><section class="page-intro"><p class="eyebrow">INPUT GENERATOR</p><h1>ORCA & Gaussian input builder</h1><p>Configure a common single-point, optimization, frequency, or TD-DFT job. Generated files are editable starting points; validate syntax against your installed program and version.</p></section>
+<div class="builder-layout"><section class="panel form-panel"><div class="panel-head"><div><p class="eyebrow">CONFIGURATION</p><h2>Calculation settings</h2></div></div>
+<label>Program</label><div class="segmented"><label><input type="radio" name="program" value="orca" checked> ORCA</label><label><input type="radio" name="program" value="gaussian"> Gaussian</label></div>
+<div class="form-grid"><label>Method / functional<select id="method"><option>B3LYP</option><option>PBE0</option><option>PBE</option><option>ωB97X-D</option><option>CAM-B3LYP</option><option>HF</option><option>MP2</option></select></label><label>Basis set<select id="basis"><option>def2-SVP</option><option>def2-TZVP</option><option>def2-TZVPP</option><option>6-31G(d,p)</option><option>6-311G(d,p)</option><option>cc-pVDZ</option></select></label><label>Job type<select id="job"><option value="optfreq">Opt + Freq</option><option value="sp">Single point</option><option value="opt">Geometry optimization</option><option value="freq">Frequency</option><option value="tddft">TD-DFT</option></select></label><label>Charge<input id="charge" type="number" value="0"></label><label>Multiplicity<input id="multiplicity" type="number" min="1" value="1"></label><label>Solvation<select id="solvent"><option value="none">None</option><option value="water">Water</option><option value="dmf">DMF</option><option value="acetonitrile">Acetonitrile</option><option value="ethanol">Ethanol</option></select></label><label>Dispersion<select id="dispersion"><option value="D4">D4</option><option value="D3BJ">D3BJ</option><option value="none">None</option></select></label><label>SCF convergence<select id="scf"><option value="normal">Normal</option><option value="tight">Tight</option><option value="verytight">Very tight</option></select></label><label>Number of excited states<input id="nstates" type="number" min="1" max="200" value="20"></label></div>
+<label for="coordinates">Cartesian coordinates (Å)</label><textarea id="coordinates" rows="9" spellcheck="false">C  0.000000  0.000000  0.000000
+H  0.000000  0.000000  1.090000
+H  1.027000  0.000000 -0.363000
+H -0.513000  0.889000 -0.363000
+H -0.513000 -0.889000 -0.363000</textarea>
+<div class="button-row"><button id="generateInput" class="button">Generate input</button><button id="downloadInput" class="button secondary">Download input file</button></div><div id="inputMessage" class="result-strip">Review coordinates, charge, multiplicity, and program version before running.</div></section>
+<section class="panel code-panel"><div class="panel-head"><div><p class="eyebrow">GENERATED FILE</p><h2 id="fileTitle">molecule.inp</h2></div><button id="copyInput" class="secondary">Copy</button></div><pre><code id="inputOutput">! B3LYP D4 def2-SVP TightSCF Opt Freq
+
+%pal
+  nprocs 8
+end
+
+* xyz 0 1
+C  0.000000  0.000000  0.000000
+H  0.000000  0.000000  1.090000
+H  1.027000  0.000000 -0.363000
+H -0.513000  0.889000 -0.363000
+H -0.513000 -0.889000 -0.363000
+*</code></pre><p class="small muted">The builder uses conservative templates. Confirm solvent syntax, dispersion support, TD-DFT options, memory and parallel settings in your installed software manual.</p><a href="results-analyzer.html" class="button secondary">Continue to results analyzer →</a></section></div></main><footer><span>Computational Chemistry Laboratory</span><span>Generated inputs are templates; validate before production use.</span></footer><script src="assets/js/common.js"></script><script src="assets/js/input-builder.js"></script></body></html>
