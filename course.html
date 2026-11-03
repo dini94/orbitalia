@@ -1,0 +1,37 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Modul DFT</title><link rel="stylesheet" href="assets/css/style.css"></head><body>
+<nav><a href="index.html">Dashboard</a><a href="course.html">Course</a><a href="molecular-builder.html">Molecular Builder</a><a href="input-builder.html">Input Builder</a><a href="results-analyzer.html">Results</a><a href="orca-docker.html">ORCA Docker</a></nav>
+<h1>Dari Schrödinger ke DFT</h1>
+<div class="card"><h2>1. Mengapa simulasi komputasi penting?</h2>
+<ul><li>Nobel Kimia 1998 (W. Kohn &amp; J. Pople): DFT dan metode komputasi kimia kuantum.</li>
+<li>Nobel Kimia 2013 (Karplus, Levitt, Warshel): model multiskala untuk sistem kimia kompleks.</li>
+<li>Simulasi memprediksi sifat material (sel surya, penyimpan H<sub>2</sub>, fotokromik) sebelum sintesis, sehingga menghemat waktu dan biaya eksperimen.</li></ul>
+<p>Referensi inti (verifikasi DOI sebelum dipublikasikan): Hohenberg &amp; Kohn, <i>Phys. Rev.</i> 136, B864 (1964); Kohn &amp; Sham, <i>Phys. Rev.</i> 140, A1133 (1965); Becke, <i>J. Chem. Phys.</i> 98, 5648 (1993); Lee, Yang &amp; Parr, <i>Phys. Rev. B</i> 37, 785 (1988); Perdew, Burke &amp; Ernzerhof, <i>Phys. Rev. Lett.</i> 77, 3865 (1996).</p></div>
+
+<div class="card"><h2>2. Mengapa Schrödinger tidak bisa untuk banyak elektron?</h2>
+<p>Ĥψ = Eψ. Fungsi gelombang N elektron bergantung pada 3N koordinat. Geser jumlah elektron dan lihat ledakan datanya (grid 10 titik per dimensi):</p>
+N elektron: <input id="n" type="range" min="1" max="12" value="2"> <b id="nv"></b><br><canvas id="c1" width="700" height="220"></canvas>
+<p id="t1"></p><p>Kerapatan elektron ρ(r) selalu hanya 3 dimensi berapa pun N. Inilah ide Hohenberg–Kohn: energi keadaan dasar adalah fungsional dari ρ.</p></div>
+
+<div class="card"><h2>3. Kohn–Sham dan Tangga Jacob</h2>
+<p>Sistem N elektron berinteraksi diganti sistem tak berinteraksi dengan ρ yang sama. Semua kerumitan dimasukkan ke E<sub>xc</sub>[ρ].</p>
+<ol><li>LDA (SVWN)</li><li>GGA (PBE, BLYP)</li><li>meta-GGA (TPSS, M06-L)</li><li>Hibrida (B3LYP, PBE0, CAM-B3LYP, ωB97X-D)</li><li>Hibrida ganda (B2PLYP)</li></ol></div>
+
+<div class="card"><h2>4. Siklus SCF</h2>
+<p>Tebakan ρ → bangun V<sub>eff</sub> → selesaikan persamaan KS → ρ baru → konvergen? (jika tidak, kembali). Atur faktor mixing α. Model ini linear: α terlalu besar menyebabkan osilasi atau divergensi.</p>
+α: <input id="a" type="range" min="0.05" max="1" step="0.05" value="0.3"> <b id="av"></b><br><canvas id="c2" width="700" height="260"></canvas><p id="t2"></p></div>
+<script>
+const $=id=>document.getElementById(id);
+function ax(g,w,h,xl,yl){g.clearRect(0,0,w,h);g.strokeStyle='#888';g.fillStyle='#888';g.beginPath();g.moveTo(40,10);g.lineTo(40,h-30);g.lineTo(w-10,h-30);g.stroke();g.fillText(xl,w/2,h-8);g.save();g.translate(10,h/2);g.rotate(-Math.PI/2);g.fillText(yl,0,0);g.restore()}
+function d1(){const N=+$('n').value;$('nv').textContent=N;const g=$('c1').getContext('2d');ax(g,700,220,'','log10(jumlah nilai)');
+ const bars=[['Ψ: 10^(3N)',3*N,'#d33'],['ρ: 10^3',3,'#1a6fd4']];
+ bars.forEach((b,i)=>{const hh=Math.min(b[1],36)*5;g.fillStyle=b[2];g.fillRect(100+i*250,190-hh,120,hh);g.fillStyle='#888';g.fillText(b[0]+' (10^'+b[1]+')',100+i*250,205)});
+ const bytes=8*Math.pow(10,3*N)/1e12;$('t1').textContent='Memori Ψ ≈ '+(bytes<1e6?bytes.toExponential(2)+' TB':bytes.toExponential(2)+' TB (melebihi seluruh penyimpanan dunia)')+' untuk N='+N+'.'}
+function d2(){const a=+$('a').value;$('av').textContent=a;const g=$('c2').getContext('2d');ax(g,700,260,'iterasi SCF','log10 |ΔE|');
+ let x=1,f=1-2.5*a,pts=[],it=-1;for(let i=0;i<=30;i++){const v=Math.log10(Math.max(Math.abs(x),1e-14));pts.push(v);if(it<0&&v<-6)it=i;x*=f}
+ const Y=v=>40+(Math.min(v,3)*-1+0)*0+ (230-40)*(3-Math.min(v,3))/17;
+ g.strokeStyle='#d33';g.setLineDash([4,4]);g.beginPath();g.moveTo(40,Y(-6));g.lineTo(690,Y(-6));g.stroke();g.setLineDash([]);g.fillStyle='#d33';g.fillText('kriteria konvergensi 1e-6',500,Y(-6)-4);
+ g.strokeStyle='#1a6fd4';g.beginPath();pts.forEach((p,i)=>{const X=40+i*21;i?g.lineTo(X,Y(p)):g.moveTo(X,Y(p))});g.stroke();
+ pts.forEach((p,i)=>{g.fillStyle='#1a6fd4';g.beginPath();g.arc(40+i*21,Y(p),3,0,7);g.fill()});
+ $('t2').textContent=Math.abs(f)>=1?'α='+a+': faktor '+f.toFixed(2)+' (|faktor|≥1) → SCF TIDAK konvergen (osilasi/divergen). Turunkan α.':(it>=0?'Konvergen setelah '+it+' iterasi.':'Konvergen sangat lambat; naikkan α.')+(f<0?' Terlihat osilasi karena faktor negatif.':'')}
+$('n').oninput=d1;$('a').oninput=d2;d1();d2();
+</script></body></html>

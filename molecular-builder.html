@@ -1,0 +1,19 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Molecular Builder</title><link rel="stylesheet" href="assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@rdkit/rdkit/dist/RDKit_minimal.js"></script><script src="https://3Dmol.org/build/3Dmol-min.js"></script></head><body>
+<nav><a href="index.html">Dashboard</a><a href="course.html">Course</a><a href="molecular-builder.html">Molecular Builder</a><a href="input-builder.html">Input Builder</a><a href="results-analyzer.html">Results</a><a href="orca-docker.html">ORCA Docker</a></nav><h1>Molecular Builder</h1>
+<div class="card"> SMILES: <input id="smi" size="40" value="c1ccc(cc1)N=Nc1ccccc1"> <button onclick="build()">Build 2D + 3D</button> <span id="st"></span>
+<div class="grid"><div id="d2"></div><div class="v" id="v3"></div></div><button onclick="dl('rdkit_preopt.py',PY)">Unduh skrip pre-optimize RDKit (MMFF/UFF)</button> <button onclick="dl('mol.xyz',xyz)">Unduh XYZ</button></div>
+<div class="card"><a href="input-builder.html"><button>Lanjut ke Input Builder →</button></a> Koordinat XYZ tersimpan otomatis di browser ini.</div>
+<script>
+const $=id=>document.getElementById(id);let RD,xyz='',viewer;
+initRDKitModule({locateFile:f=>'https://cdn.jsdelivr.net/npm/@rdkit/rdkit/dist/'+f}).then(m=>{RD=m;$('st').textContent='RDKit siap'});
+const nm=()=>'mol';
+const PY=`from rdkit import Chem\nfrom rdkit.Chem import AllChem\nm=Chem.AddHs(Chem.MolFromSmiles(input('SMILES: ')))\nAllChem.EmbedMolecule(m,randomSeed=42)\nAllChem.MMFFOptimizeMolecule(m,maxIters=5000)\nChem.MolToXYZFile(m,'mol_preopt.xyz')\nprint('ok')`;
+function dl(n,t){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t]));a.download=n;a.click()}
+function sdf2xyz(s){const L=s.split('\n'),n=+L[3].substr(0,3),o=[n,nm()];for(let i=0;i<n;i++){const p=L[4+i].trim().split(/\s+/);o.push(p[3].padEnd(3)+(+p[0]).toFixed(6).padStart(12)+(+p[1]).toFixed(6).padStart(12)+(+p[2]).toFixed(6).padStart(12))}return o.join('\n')}
+async function build(){const smi=$('smi').value.trim();if(!RD)return alert('RDKit belum dimuat');const m=RD.get_mol(smi);if(!m||!m.is_valid())return alert('SMILES tidak valid');
+ $('d2').innerHTML=m.get_svg(360,300);let sdf=null;
+ try{const r=await fetch('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/'+encodeURIComponent(smi)+'/SDF?record_type=3d');if(r.ok)sdf=await r.text();}catch(e){}
+ if(sdf){$('st').textContent='3D dari PubChem (konformer 3D tersedia)'}else{sdf=m.add_hs();$('st').textContent='Tidak ada di PubChem: koordinat 2D + H. Jalankan skrip RDKit untuk 3D + MMFF.'}
+ xyz=sdf2xyz(sdf);$('v3').innerHTML='';viewer=$3Dmol.createViewer($('v3'),{backgroundColor:'white'});viewer.addModel(sdf,'sdf');viewer.setStyle({},{stick:{radius:.15},sphere:{scale:.25}});viewer.zoomTo();viewer.render();localStorage.setItem('cc_xyz',xyz)}
+</script></body></html>
